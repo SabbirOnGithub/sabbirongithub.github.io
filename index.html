@@ -9,7 +9,21 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-    <script type="module" crossorigin src="/assets/index-BR6cloks.js"></script>
+  <script>
+    // Decode the path encoded by 404.html so BrowserRouter sees the real URL
+    (function (l) {
+      if (l.search[1] === '/') {
+        var decoded = l.search.slice(1).split('&').map(function (s) {
+          return s.replace(/~and~/g, '&')
+        })
+        window.history.replaceState(
+          null, null,
+          decoded[0] + (decoded[1] ? '&' + decoded[1] : '') + l.hash
+        )
+      }
+    }(window.location))
+  </script>
+    <script type="module" crossorigin src="/assets/index-d8h1OdIz.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-DNFb_QB2.css">
   </head>
   <body>
