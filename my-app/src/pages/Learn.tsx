@@ -18,6 +18,51 @@ const STATUS_CFG: Record<Status, { label: string; color: string; bg: string }> =
   planned:       { label: 'Planned',     color: '#6e7681', bg: 'rgba(110,118,129,0.12)' },
 }
 
+const ALL_TAB = '__all__'
+
+// ─── RoadmapView ──────────────────────────────────────────────────────────────
+
+function RoadmapView({ topics, categories, onUpdate }: {
+  topics: Topic[]
+  categories: Category[]
+  onUpdate: (id: string, updates: Partial<Topic>) => Promise<void>
+}) {
+  const catMap = Object.fromEntries(categories.map(c => [c.id, c]))
+  const sorted = [...topics].sort((a, b) => {
+    const catA = catMap[a.category_id]?.order_index ?? 0
+    const catB = catMap[b.category_id]?.order_index ?? 0
+    if (catA !== catB) return catA - catB
+    return a.order_index - b.order_index
+  })
+
+  return (
+    <div className="roadmap-list">
+      {sorted.map((topic, i) => {
+        const cfg = STATUS_CFG[topic.status]
+        const cat = catMap[topic.category_id]
+        return (
+          <div key={topic.id} className={`roadmap-item status-${topic.status}`}>
+            <span className="roadmap-num">{i + 1}</span>
+            <div className="roadmap-info">
+              <span className="roadmap-title">{topic.title}</span>
+              {topic.description && <span className="roadmap-desc">{topic.description}</span>}
+            </div>
+            <span className="roadmap-cat">{cat?.name}</span>
+            <button
+              className="status-btn"
+              style={{ color: cfg.color, background: cfg.bg, borderColor: cfg.color + '50' }}
+              onClick={() => onUpdate(topic.id, { status: STATUS_CYCLE[topic.status] })}
+              title="Click to cycle status"
+            >
+              {cfg.label}
+            </button>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 // ─── TopicCard ────────────────────────────────────────────────────────────────
 
 function TopicCard({ topic, onUpdate, onDelete }: {
@@ -154,7 +199,7 @@ export default function Learn() {
   const navigate = useNavigate()
   const [categories, setCategories] = useState<Category[]>([])
   const [topics, setTopics] = useState<Topic[]>([])
-  const [activeTab, setActiveTab] = useState<string>('')
+  const [activeTab, setActiveTab] = useState<string>(ALL_TAB)
   const [loading, setLoading] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)
 
@@ -164,7 +209,7 @@ export default function Learn() {
         supabase.from('categories').select('*').order('order_index'),
         supabase.from('topics').select('*').order('order_index'),
       ])
-      if (cats?.length) { setCategories(cats); setActiveTab(cats[0].id) }
+      if (cats?.length) { setCategories(cats) }
       if (tops) setTopics(tops)
       setLoading(false)
     }
@@ -236,6 +281,14 @@ export default function Learn() {
       {/* ── Category Tabs ── */}
       <div className="cat-tabs-wrap">
         <div className="cat-tabs">
+          <button
+            className={`cat-tab ${activeTab === ALL_TAB ? 'active' : ''}`}
+            onClick={() => { setActiveTab(ALL_TAB); setShowAddForm(false) }}
+          >
+            Roadmap
+            <span className="cat-badge">{topics.filter(t => t.status === 'done').length}/{topics.length}</span>
+          </button>
+          <span className="cat-tab-divider" />
           {categories.map(cat => {
             const count = topics.filter(t => t.category_id === cat.id).length
             const doneCount = topics.filter(t => t.category_id === cat.id && t.status === 'done').length
@@ -255,26 +308,29 @@ export default function Learn() {
 
       {/* ── Topics ── */}
       <main className="lab-main">
-        <div className="topics-grid">
-          {visibleTopics.map(topic => (
-            <TopicCard
-              key={topic.id}
-              topic={topic}
-              onUpdate={updateTopic}
-              onDelete={deleteTopic}
-            />
-          ))}
-
-          {showAddForm
-            ? <AddTopicForm categoryId={activeTab} onAdd={addTopic} onCancel={() => setShowAddForm(false)} />
-            : (
-              <button className="add-topic-btn" onClick={() => setShowAddForm(true)}>
-                <span className="add-plus">+</span>
-                <span>Add Topic</span>
-              </button>
-            )
-          }
-        </div>
+        {activeTab === ALL_TAB ? (
+          <RoadmapView topics={topics} categories={categories} onUpdate={updateTopic} />
+        ) : (
+          <div className="topics-grid">
+            {visibleTopics.map(topic => (
+              <TopicCard
+                key={topic.id}
+                topic={topic}
+                onUpdate={updateTopic}
+                onDelete={deleteTopic}
+              />
+            ))}
+            {showAddForm
+              ? <AddTopicForm categoryId={activeTab} onAdd={addTopic} onCancel={() => setShowAddForm(false)} />
+              : (
+                <button className="add-topic-btn" onClick={() => setShowAddForm(true)}>
+                  <span className="add-plus">+</span>
+                  <span>Add Topic</span>
+                </button>
+              )
+            }
+          </div>
+        )}
       </main>
 
     </div>
