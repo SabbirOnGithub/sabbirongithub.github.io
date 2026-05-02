@@ -54,7 +54,7 @@ CREATE POLICY "auth_all_topics" ON topics
 -- ─── Categories ───────────────────────────────────────────────────────────────
 
 INSERT INTO categories (name, order_index) VALUES
-  ('.NET & C#',              1),
+  ('System Design',          1),
   ('Database & Storage',     2),
   ('Architecture & Patterns',3),
   ('DevOps — Foundations',   4),
@@ -62,15 +62,14 @@ INSERT INTO categories (name, order_index) VALUES
   ('DevOps — IaC',           6),
   ('DevOps — GitOps & CI/CD',7),
   ('DevOps — Observability', 8),
-  ('DevOps — Security',      9),
-  ('Languages',              10)
+  ('DevOps — Security',      9)
 ON CONFLICT (name) DO NOTHING;
 
 -- ─── Seed Topics ─────────────────────────────────────────────────────────────
 
 DO $$
 DECLARE
-  c_dotnet    uuid;
+  c_sd        uuid;
   c_db        uuid;
   c_arch      uuid;
   c_dfound    uuid;
@@ -79,9 +78,8 @@ DECLARE
   c_dcicd     uuid;
   c_dobs      uuid;
   c_dsec      uuid;
-  c_lang      uuid;
 BEGIN
-  SELECT id INTO c_dotnet FROM categories WHERE name = '.NET & C#';
+  SELECT id INTO c_sd     FROM categories WHERE name = 'System Design';
   SELECT id INTO c_db     FROM categories WHERE name = 'Database & Storage';
   SELECT id INTO c_arch   FROM categories WHERE name = 'Architecture & Patterns';
   SELECT id INTO c_dfound FROM categories WHERE name = 'DevOps — Foundations';
@@ -90,15 +88,17 @@ BEGIN
   SELECT id INTO c_dcicd  FROM categories WHERE name = 'DevOps — GitOps & CI/CD';
   SELECT id INTO c_dobs   FROM categories WHERE name = 'DevOps — Observability';
   SELECT id INTO c_dsec   FROM categories WHERE name = 'DevOps — Security';
-  SELECT id INTO c_lang   FROM categories WHERE name = 'Languages';
 
-  -- .NET & C#
+  -- System Design
   INSERT INTO topics (category_id, title, description, status, progress, notes, resources, order_index) VALUES
-    (c_dotnet, 'CQRS with MediatR',         'Command/Query separation, pipeline behaviors for logging, validation, and caching.',  'done',         100, 'Implemented in production. Pipeline behaviors are the real power — great for cross-cutting concerns.', '{}', 1),
-    (c_dotnet, 'Clean Architecture',         'Domain, Application, Infrastructure, Presentation layers and cross-cutting concerns.', 'done',         100, 'Applied across multiple production projects.', '{}', 2),
-    (c_dotnet, 'Minimal APIs & .NET 8',      'New minimal API patterns, performance improvements, native AOT.',                     'in-progress',  60,  '', ARRAY['Microsoft Docs — Minimal APIs', 'Nick Chapsas YouTube'], 3),
-    (c_dotnet, 'gRPC with ASP.NET Core',     'High-performance service-to-service communication with Protobuf contracts.',          'in-progress',  40,  '', '{}', 4),
-    (c_dotnet, 'Source Generators',          'Compile-time code generation to eliminate boilerplate.',                              'planned',       0,  '', '{}', 5);
+    (c_sd, 'Scalability Fundamentals',    'Horizontal vs vertical scaling, stateless services, CAP theorem, consistency models.',   'planned',  0, '', ARRAY['Designing Data-Intensive Applications — Kleppmann'], 1),
+    (c_sd, 'Load Balancing & Proxies',    'L4/L7 load balancers, reverse proxies, consistent hashing, session affinity.',           'planned',  0, '', '{}', 2),
+    (c_sd, 'Caching Strategies',          'CDN, in-process, distributed cache; cache invalidation, eviction policies, stampede.',   'planned',  0, '', ARRAY['AWS Caching Best Practices'], 3),
+    (c_sd, 'Message Queues & Streaming',  'Async decoupling with queues (RabbitMQ/SQS) vs streaming (Kafka); ordering & delivery.', 'planned',  0, '', ARRAY['Designing Event-Driven Systems — O''Reilly'], 4),
+    (c_sd, 'API Design & Versioning',     'REST best practices, versioning strategies, rate limiting, API gateways.',               'planned',  0, '', '{}', 5),
+    (c_sd, 'Distributed Transactions',   'Two-phase commit, Saga pattern, eventual consistency trade-offs.',                       'planned',  0, '', '{}', 6),
+    (c_sd, 'Rate Limiting & Throttling',  'Token bucket, leaky bucket, fixed/sliding window algorithms; implementation patterns.',  'planned',  0, '', '{}', 7),
+    (c_sd, 'Search & Indexing',           'Full-text search with Elasticsearch, inverted indexes, relevance tuning.',               'planned',  0, '', '{}', 8);
 
   -- Database & Storage
   INSERT INTO topics (category_id, title, description, status, progress, notes, resources, order_index) VALUES
@@ -158,10 +158,5 @@ BEGIN
     (c_dsec, 'Kubernetes Network Policies',   'Restricting pod-to-pod communication, ingress/egress rules.',                      'planned',       0, '', '{}', 3),
     (c_dsec, 'SAST/DAST in CI',              'SonarQube for static analysis, OWASP ZAP for dynamic testing in pipelines.',        'planned',       0, '', '{}', 4),
     (c_dsec, 'Azure Key Vault & Managed IDs', 'Secretless authentication, managed identities for Azure resources.',               'planned',       0, '', ARRAY['Azure Key Vault Docs'], 5);
-
-  -- Languages
-  INSERT INTO topics (category_id, title, description, status, progress, notes, resources, order_index) VALUES
-    (c_lang, 'Go for Microservices',          'Go fundamentals, goroutines/channels concurrency model, building HTTP services.',    'planned',       0, '', ARRAY['The Go Programming Language — Donovan & Kernighan'], 1),
-    (c_lang, 'Python for Automation',         'Scripts, data processing, tooling automation, quick prototyping.',                  'in-progress',  20, '', '{}', 2);
 
 END $$;
